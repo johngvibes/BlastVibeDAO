@@ -1,0 +1,58 @@
+// Run this command in your project directory to install necessary packages:
+// npm install @thirdweb-dev/sdk ethers
+
+import { BlastSepoliaTestnet } from "@thirdweb-dev/chains";
+import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import dotenv from 'dotenv';
+dotenv.config();
+
+// Initialize the Thirdweb SDK for backend usage with your secret key
+const sdk = new ThirdwebSDK(BlastSepoliaTestnet, {
+  secretKey: process.env.SECRET_KEY, // Ensure this is stored securely and not exposed
+});
+
+// The contract address for the marketplace
+const contractAddress = "0x720bb90107BF29F9336052A74D0fae526AA86De2";
+const contract = await sdk.getContract(contractAddress);
+
+// Example of creating a direct listing on the marketplace
+async function createDirectListing() {
+  const listing = {
+    assetContractAddress: "0x...", // Replace with the actual contract address of the asset
+    tokenId: "0", // Specify the token ID for the asset you're listing
+    quantity: 1,
+    currencyContractAddress: "NATIVE_TOKEN_ADDRESS", // Use the correct address or "NATIVE_TOKEN_ADDRESS" for the native currency
+    pricePerToken: "1.5", // Price per token in the specified currency
+    startTimestamp: new Date(),
+    endTimestamp: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    isReservedListing: false,
+  };
+
+  try {
+    const tx = await contract.directListings.createListing(listing);
+    console.log(`Listing created successfully. Transaction ID: ${tx.id}`);
+  } catch (error) {
+    console.error("Error creating listing:", error);
+  }
+}
+
+// Example of buying from a direct listing
+async function buyFromDirectListing(listingId, quantityDesired) {
+  try {
+    await contract.directListings.buyFromListing(listingId, quantityDesired);
+    console.log(`Bought ${quantityDesired} from listing ${listingId}`);
+  } catch (error) {
+    console.error("Error buying from listing:", error);
+  }
+}
+
+// Add more functions as needed based on your marketplace operations
+
+// Example function calls
+async function main() {
+  await createDirectListing();
+  // Uncomment and adjust the following line after replacing listingId and quantityDesired with actual values
+  // await buyFromDirectListing("1", 1); // Example: Listing ID "1", Quantity "1"
+}
+
+main().catch(console.error);
