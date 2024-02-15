@@ -1,90 +1,48 @@
+// Ensure the necessary packages are installed by running:
+// npm install @thirdweb-dev/sdk ethers
+
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { BlastSepoliaTestnet } from "@thirdweb-dev/chains";
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Assuming this script is run in a backend environment where it's safe to use your secret key.
+// Initialize the Thirdweb SDK for the BlastSepoliaTestnet
 const sdk = new ThirdwebSDK(BlastSepoliaTestnet, {
-  secretKey: process.env.SECRET_KEY, // Ensure this is set in your .env file
+  privateKey: process.env.PRIVATE_KEY, // Loaded from .env file
 });
 
-// The ERC-20 contract address you're interacting with
+// ERC-20 and DAO Contract address on BlastSepoliaTestnet
 const contractAddress = "0xa6b4B9a8E4028B8D345070ACF250ca82a573694c";
 
-async function interactWithContract() {
+async function main() {
   const contract = await sdk.getContract(contractAddress);
 
-  // Example function to transfer tokens
-  async function transferTokens(toAddress, amount) {
+  // Query the token balance of the current account
+  async function queryBalance() {
     try {
-      const tx = await contract.erc20.transfer(toAddress, amount);
-      console.log(`Transferred ${amount} tokens to ${toAddress}. Transaction Hash: ${tx.hash}`);
-    } catch (error) {
-      console.error("Error transferring tokens:", error);
-    }
-  }
-
-  // Example function to query token balance
-  async function queryBalance(address) {
-    try {
-      const balance = await contract.erc20.balanceOf(address);
-      console.log(`Balance of ${address} is ${balance}`);
+      const walletAddress = sdk.wallet.address; // Get the current wallet address
+      const balance = await contract.erc20.balanceOf(walletAddress);
+      console.log(`Balance of ${walletAddress} is ${balance.displayValue} ${balance.symbol}`);
     } catch (error) {
       console.error("Error querying balance:", error);
     }
   }
 
-  // Replace '0xRecipientAddressExample' with an actual recipient address and adjust the amount as needed
-  await transferTokens("0xRecipientAddressExample", 10);
+  // Generic function to cast a vote (assuming a simple voting mechanism)
+  async function castVote(proposalId, support) {
+    try {
+      // Assuming a function 'vote' exists with parameters proposalId and support
+      const tx = await contract.vote(proposalId, support); // This line is hypothetical and depends on your contract's API
+      console.log(`Voted on proposal ${proposalId} with support: ${support}. Transaction Hash: ${tx.hash}`);
+    } catch (error) {
+      console.error("Error casting vote:", error);
+    }
+  }
 
-  // Replace '0xQueryAddressExample' with an actual address you want to check the balance of
-  await queryBalance("0xQueryAddressExample");
-}
+  await queryBalance(); // Query and log the balance of the current account
 
-// Execute the script
-interactWithContract().catch(console.error);
-
-
-DAO voting/
-
-// Assuming these are defined or imported correctly elsewhere in your script
-const proposalId = 1; // Example proposal ID
-const support = true; // Example vote support
-const reason = "Supporting because..."; // Example reason for voting
-const params = "..."; // Additional parameters if required by your contract
-const [v, r, s] = [0, '0x...', '0x...']; // Example components of a signature
-const targets = ["0x..."]; // Targets for proposal execution
-const values = [0]; // Values associated with calls
-const calldatas = ["0x..."]; // Calldata for calls
-const descriptionHash = "0x..."; // Hash of the description
-const uri = "http://example.com/newuri"; // New URI for setting contract URI
-const newProposalThreshold = 10; // Example new proposal threshold
-const newVotingDelay = 1; // Example new voting delay
-const newVotingPeriod = 10000; // Example new voting period
-const newQuorumNumerator = 5000; // Example new quorum numerator
-
-async function executeDaoFunctions(contract) {
-    // Cast a vote
-    await contract.castVote(proposalId, support);
-
-    // Cast a vote by signature
-    await contract.castVoteBySig(proposalId, support, v, r, s);
-
-    // Cast a vote with a reason
-    await contract.castVoteWithReason(proposalId, support, reason);
-
-    // More functions follow the same pattern...
-}
-
-// Example usage
-async function main() {
-    const sdk = new ThirdwebSDK(BlastSepoliaTestnet, {
-      privateKey: process.env.PRIVATE_KEY,
-    });
-
-    const contract = await sdk.getContract("0xa6b4B9a8E4028B8D345070ACF250ca82a573694c");
-
-    await executeDaoFunctions(contract);
+  // Hypothetical example of casting a vote, assuming proposalId 1 exists and you want to support it
+  await castVote(1, true);
 }
 
 main().catch(console.error);
